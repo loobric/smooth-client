@@ -108,7 +108,7 @@ def login(email: str = None, password: str = None, base_url: str = None):
         print("⚠ Warning: No session cookie received. Authentication may have failed.", file=sys.stderr)
     else:
         transport.save_session(email=email)
-        print(f"  Session saved to {SESSION_FILE}")
+        print(f"  Session saved to {transport.SESSION_FILE}")
         print(f"  Base URL: {transport.BASE_URL}")
 
 
@@ -975,7 +975,7 @@ def logout():
     transport.SESSION_COOKIE = None
     transport.clear_session()
     print("✓ Logged out successfully.")
-    print(f"  Session cleared from {SESSION_FILE}")
+    print(f"  Session cleared from {transport.SESSION_FILE}")
 
 
 def _run(fn, *args, **kwargs):
@@ -1496,7 +1496,7 @@ Environment Variables:
         if transport.API_KEY:
             print(f"Using API key from --api-key flag", file=sys.stderr)
         elif transport.SESSION_COOKIE:
-            print(f"Using saved session from {SESSION_FILE}", file=sys.stderr)
+            print(f"Using saved session from {transport.SESSION_FILE}", file=sys.stderr)
         else:
             print(f"No authentication (login required for protected endpoints)", file=sys.stderr)
 

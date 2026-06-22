@@ -684,3 +684,37 @@ def test_whoami_reports_old_server_without_version_endpoint(monkeypatch, capsys)
     cli.whoami()
     out = capsys.readouterr().out
     assert "older server" in out
+
+
+# --- Regression: session-file paths (login/logout) reference transport.SESSION_FILE,
+# --- which moved out of the CLI module during the smooth-core -> smooth-client port.
+
+def test_login_saves_session_without_nameerror(monkeypatch, tmp_path, capsys):
+    sess = tmp_path / "session.json"
+    monkeypatch.setattr(transport, "SESSION_DIR", tmp_path)
+    monkeypatch.setattr(transport, "SESSION_FILE", sess)
+    monkeypatch.setattr(transport, "SESSION_COOKIE", None)
+    monkeypatch.setattr(transport, "BASE_URL", "")
+
+    def fake(method, endpoint, **kw):
+        transport.SESSION_COOKIE = "cookievalue"   # server sets the session cookie
+        return {"email": "a@b.com", "id": "uid-1"}
+    monkeypatch.setattr(transport, "make_request", fake)
+
+    cli.login(email="a@b.com", password="pw", base_url="http://x")
+    out = capsys.readouterr().out
+    assert "Login successful" in out
+    assert sess.exists(), "session must be written to transport.SESSION_FILE"
+
+
+def test_logout_clears_session_without_nameerror(monkeypatch, tmp_path, capsys):
+    sess = tmp_path / "session.json"
+    sess.write_text("{}")
+    monkeypatch.setattr(transport, "SESSION_FILE", sess)
+    monkeypatch.setattr(transport, "SESSION_COOKIE", "cookievalue")
+    monkeypatch.setattr(transport, "make_request", lambda *a, **k: {})
+
+    cli.logout()
+    out = capsys.readouterr().out
+    assert "Logged out" in out
+    assert not sess.exists(), "logout must clear the session file"
