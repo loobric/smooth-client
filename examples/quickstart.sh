@@ -29,15 +29,17 @@
 # accidentally feed the script text into a command. Every value below is a flag.
 exec < /dev/null
 
-# Fail fast with a clear message if the environment isn't set up.
+# Fail fast with a clear message if the environment isn't set up. `list-machines`
+# is a cheap authenticated call — it works with either a session or an API key,
+# so it's a reliable "am I signed in?" probe.
 : "${SMOOTH_BASE_URL:?Set the server first, e.g. export SMOOTH_BASE_URL=https://api.loobric.com}"
-if ! smooth whoami >/dev/null 2>&1; then
-  echo "Not signed in. Create and export an API key first — see the header of this file." >&2
+if ! smooth list-machines >/dev/null 2>&1; then
+  echo "Not signed in, or the server is unreachable." >&2
+  echo "Create and export an API key first — see the header of this file." >&2
   exit 1
 fi
 
-echo "== Account =="
-smooth whoami
+echo "== Seeding ${SMOOTH_BASE_URL} =="
 
 echo
 echo "== 1. A machine to bind tools against =="
