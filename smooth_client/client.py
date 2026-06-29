@@ -330,6 +330,13 @@ class Client:
                           body={"machine_id": machine_id, **section})
 
     # -- users (admin) -------------------------------------------------------
+    def list_users(self) -> Dict[str, Any]:
+        """The admin account roster (admin-only). Returns {total, users}: the
+        account count plus a per-account summary (email, role, flags, API-key
+        count, created_at), newest first. No secrets — never a password hash or
+        key material. A NotFound means the server predates the endpoint."""
+        return self._call("GET", "/admin/users")
+
     def create_user(self, email: str, password: str, **extra) -> Dict[str, Any]:
         return self._call("POST", "/users",
                           body={"email": email, "password": password, **extra})

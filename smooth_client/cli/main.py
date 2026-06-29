@@ -1156,6 +1156,34 @@ def whoami():
         print("  Build:  unknown — older server with no /version endpoint")
 
 
+def list_users():
+    """Show the admin account roster: how many accounts exist and who they are.
+
+    Admin-only on the server. An older server with no /admin/users endpoint
+    surfaces as a clear message rather than a stack trace."""
+    try:
+        data = _client().list_users()
+    except NotFound:
+        print("This server has no /admin/users endpoint (older build).")
+        return
+    users = data.get("users", []) if isinstance(data, dict) else (data or [])
+    total = data.get("total", len(users)) if isinstance(data, dict) else len(users)
+    print(f"  {total} account(s).")
+    for u in users:
+        flags = []
+        if u.get("is_admin"):
+            flags.append("admin")
+        if not u.get("is_active", True):
+            flags.append("inactive")
+        if u.get("is_verified"):
+            flags.append("verified")
+        suffix = f" [{', '.join(flags)}]" if flags else ""
+        when = (u.get("created_at") or "")[:10]
+        keys = u.get("api_key_count", 0)
+        print(f"  {u.get('email', ''):32}  {u.get('role', ''):12}  "
+              f"keys={keys:<3}  {when}{suffix}")
+
+
 def list_audit(limit=50):
     """Show recent audit-log entries (who changed what, when)."""
     data = _client().list_audit_logs()
@@ -1700,6 +1728,16 @@ Environment Variables:
     reset_parser.add_argument("--yes", "-y", action="store_true",
                               help="Skip the confirmation prompt")
     reset_parser.set_defaults(func=lambda args: reset_account(args.yes))
+
+    # === list-users (admin) ===
+    list_users_parser = subparsers.add_parser(
+        "list-users",
+        help="ADMIN: list all accounts — how many exist and who they are",
+        description="Admin-only account roster: how many accounts exist and who "
+                    "they are (email, role, flags, API-key count, created date), "
+                    "newest first. No secrets are shown.",
+    )
+    list_users_parser.set_defaults(func=lambda _: list_users())
 
     # === wipe-all (admin factory reset) ===
     wipe_parser = subparsers.add_parser(

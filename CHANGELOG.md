@@ -3,6 +3,16 @@
 All notable changes to **loobric-smooth** (the Smooth client library + `smooth` CLI)
 are recorded here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.1] — 2026-06-29
+
+### Added
+- **`smooth list-users`** — the admin account roster (and `Client.list_users()`
+  library method). Lists how many accounts exist and who they are (email, role,
+  flags, API-key count, created date), newest first, over smooth-core's
+  `GET /api/v1/admin/users`. Admin-only on the server; an older server with no
+  such endpoint reports it plainly instead of erroring. No secrets are shown —
+  never a password hash or key material. Needs smooth-core ≥ 0.3.5.
+
 ## [0.5.0] — 2026-06-27
 
 ### Added
